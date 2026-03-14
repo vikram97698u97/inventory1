@@ -18,6 +18,7 @@ export function DataProvider({ children }) {
   const { user } = useAuth();
   const [products, setProducts] = useState([]);
   const [transactions, setTransactions] = useState([]);
+  const [vendors, setVendors] = useState([]);
   const [loading, setLoading] = useState(true);
   const [dbError, setDbError] = useState(null);
 
@@ -51,9 +52,19 @@ export function DataProvider({ children }) {
         setDbError(err.message);
       });
 
+      const vendorsQuery = query(collection(db, 'vendors'), where('userId', '==', user.uid));
+      const unsubVendors = onSnapshot(vendorsQuery, (snapshot) => {
+        const vendorData = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+        setVendors(vendorData);
+      }, (err) => {
+        console.error("Firestore error for vendors:", err);
+        setDbError(err.message);
+      });
+
       return () => {
         unsubProducts();
         unsubTransactions();
+        unsubVendors();
       };
     } catch(e) {
       console.error("Initial Firestore connection error:", e);
@@ -68,6 +79,15 @@ export function DataProvider({ children }) {
       ...productData,
       userId: user.uid,
       stock: productData.initialStock || 0,
+      createdAt: serverTimestamp()
+    });
+  };
+
+  const addVendor = async (vendorData) => {
+    if (!user) return;
+    await addDoc(collection(db, 'vendors'), {
+      ...vendorData,
+      userId: user.uid,
       createdAt: serverTimestamp()
     });
   };
@@ -91,7 +111,7 @@ export function DataProvider({ children }) {
   };
 
   return (
-    <DataContext.Provider value={{ products, transactions, addProduct, updateProductStock, loading, dbError }}>
+    <DataContext.Provider value={{ products, transactions, vendors, addProduct, addVendor, updateProductStock, loading, dbError }}>
       {children}
     </DataContext.Provider>
   );

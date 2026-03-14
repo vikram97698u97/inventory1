@@ -10,6 +10,7 @@ import Deliveries from './pages/Deliveries';
 import Transfers from './pages/Transfers';
 import Adjustments from './pages/Adjustments';
 import Ledger from './pages/Ledger';
+import Vendors from './pages/Vendors';
 
 function ProtectedRoute({ children }) {
   const { user, loading } = useAuth();
@@ -37,6 +38,7 @@ export default function App() {
               <Route path="transfers" element={<Transfers />} />
               <Route path="adjustments" element={<Adjustments />} />
               <Route path="ledger" element={<Ledger />} />
+              <Route path="vendors" element={<Vendors />} />
             </Route>
           </Routes>
         </Router>

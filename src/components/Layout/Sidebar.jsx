@@ -1,10 +1,11 @@
 import { Link, useLocation } from 'react-router-dom';
-import { LayoutDashboard, Package, ArrowDownToLine, ArrowUpFromLine, RefreshCw, Settings, History } from 'lucide-react';
+import { LayoutDashboard, Package, ArrowDownToLine, ArrowUpFromLine, RefreshCw, Settings, History, Building2 } from 'lucide-react';
 import '../../styles/Sidebar.css';
 
 const navigation = [
   { name: 'Dashboard', href: '/', icon: LayoutDashboard },
   { name: 'Products', href: '/products', icon: Package },
+  { name: 'Vendors', href: '/vendors', icon: Building2 },
   { name: 'Receipts', href: '/receipts', icon: ArrowDownToLine },
   { name: 'Deliveries', href: '/deliveries', icon: ArrowUpFromLine },
   { name: 'Transfers', href: '/transfers', icon: RefreshCw },

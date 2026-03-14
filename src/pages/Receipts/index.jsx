@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import { useSearchParams } from 'react-router-dom';
 import { useData } from '../../context/DataContext';
 import { useAuth } from '../../context/AuthContext';
 import { Plus, ArrowDownToLine } from 'lucide-react';
@@ -7,9 +8,14 @@ import '../../styles/Operations.css';
 export default function Receipts() {
   const { products, updateProductStock, transactions } = useData();
   const { user } = useAuth();
+  const [searchParams] = useSearchParams();
+  const vendorIdParam = searchParams.get('vendorId');
   const [showModal, setShowModal] = useState(false);
 
-  const receiptTransactions = transactions.filter(t => t.type === 'RECEIPT');
+  let receiptTransactions = transactions.filter(t => t.type === 'RECEIPT');
+  if (vendorIdParam) {
+    receiptTransactions = receiptTransactions.filter(t => t.vendorId === vendorIdParam);
+  }
 
   return (
     <div className="page-container">
@@ -70,9 +76,10 @@ export default function Receipts() {
 }
 
 function ReceiptModal({ onClose, products, updateProductStock, user }) {
+  const { vendors } = useData();
   const [productId, setProductId] = useState('');
   const [quantity, setQuantity] = useState('');
-  const [supplier, setSupplier] = useState('');
+  const [vendorId, setVendorId] = useState('');
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -80,15 +87,17 @@ function ReceiptModal({ onClose, products, updateProductStock, user }) {
 
     const qtyNumber = Number(quantity);
     const product = products.find(p => p.id === productId);
+    const vendor = vendors?.find(v => v.id === vendorId);
     
     if (product) {
       const txDetails = {
         type: 'RECEIPT',
         productId,
         quantity: qtyNumber,
-        supplier,
+        vendorId: vendor ? vendor.id : null,
+        supplier: vendor ? vendor.name : 'Unknown',
         userEmail: user?.email || 'Unknown',
-        notes: `Received ${qtyNumber} units from ${supplier}`
+        notes: `Received ${qtyNumber} units from ${vendor ? vendor.name : 'Unknown'}`
       };
       await updateProductStock(productId, product.stock, qtyNumber, txDetails);
     }
@@ -118,8 +127,13 @@ function ReceiptModal({ onClose, products, updateProductStock, user }) {
               <input required type="number" min="1" value={quantity} onChange={e => setQuantity(e.target.value)} />
             </div>
             <div className="form-group">
-              <label>Supplier / Vendor Name</label>
-              <input type="text" value={supplier} onChange={e => setSupplier(e.target.value)} placeholder="e.g. Acme Corp" />
+              <label>Supplier / Vendor</label>
+              <select value={vendorId} onChange={e => setVendorId(e.target.value)}>
+                <option value="">-- No Vendor selected --</option>
+                {vendors?.map(v => (
+                  <option key={v.id} value={v.id}>{v.name}</option>
+                ))}
+              </select>
             </div>
           </div>
           <div className="modal-footer">
